@@ -1,4 +1,5 @@
 import collections
+import numpy as np
 
 class SimulationEngine:
     def __init__(self, network, model_functions):
@@ -6,9 +7,6 @@ class SimulationEngine:
         self.model_functions = model_functions
 
     def run(self, scenario_name, iterations=10, alpha=0.5, beta=0.5):
-        """
-        Main simulation loop. Now accepts scenario_name for reporting.
-        """
         print("--- Starting Simulation ---")
         print("Step 1: Calculating initial internal scores...")
         for node in self.network.nodes.values():
@@ -21,11 +19,13 @@ class SimulationEngine:
         print("  - Propagation complete.")
 
         meta_score = self._calculate_meta_score()
+        overall_scores = self._calculate_overall_scores()
         print("--- Simulation Finished ---")
         
         results = {
-            "scenario_name": scenario_name, # Pass the name through
+            "scenario_name": scenario_name,
             "meta_score": meta_score,
+            "overall_scores": overall_scores, # Added overall scores
             "final_network": self.network,
             "node_states": {
                 node.id: {
@@ -37,6 +37,25 @@ class SimulationEngine:
         }
         return results
 
+    def _calculate_overall_scores(self):
+        """Calculates the average Functionality, Value, and Sustainability scores for the whole network."""
+        all_func = []
+        all_val = []
+        all_sus = []
+        
+        for node in self.network.nodes.values():
+            all_func.extend(node.functionality_scores.values())
+            all_val.extend(node.value_scores.values())
+            if 'sustainability' in node.value_scores:
+                all_sus.append(node.value_scores['sustainability'])
+        
+        return {
+            "Functionality": np.mean(all_func) if all_func else 0,
+            "Value": np.mean(all_val) if all_val else 0,
+            "Sustainability": np.mean(all_sus) if all_sus else 0,
+        }
+    
+    # ... (the rest of the engine file is the same)
     def _propagate_scores(self, alpha, beta):
         last_f_scores = {nid: n.functionality_scores.copy() for nid, n in self.network.nodes.items()}
         last_v_scores = {nid: n.value_scores.copy() for nid, n in self.network.nodes.items()}

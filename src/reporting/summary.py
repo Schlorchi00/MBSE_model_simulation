@@ -1,18 +1,27 @@
 def print_iteration_summary(all_results):
     """
-    Prints a summary report comparing the results of all simulation iterations.
+    Prints a summary report comparing all simulation iterations and announces the best one.
     """
     print("==========================================================")
     print("           COMPLETE SIMULATION ITERATION REPORT           ")
     print("==========================================================")
 
+    best_iteration = None
+    best_score = -1
+
     for i, result in enumerate(all_results):
-        # The scenario name is now correctly passed in the results dictionary
-        print(f"\n--- ITERATION {i+1}: {result['scenario_name']} ---")
-        print(f"  Meta Score: {result['meta_score']:.4f}")
+        scenario_name = result['scenario_name']
+        meta_score = result['meta_score']
+        
+        if meta_score > best_score:
+            best_score = meta_score
+            best_iteration = scenario_name
+
+        print(f"\n--- ITERATION {i+1}: {scenario_name} ---")
+        print(f"  Meta Score: {meta_score:.4f}")
         
         print("\n  Node Details:")
-        for node_id, state in result['node_states'].items():
+        for node_id, state in sorted(result['node_states'].items()):
             print(f"    - Node: {node_id}")
             if state['attributes']:
                 print(f"      Input Attributes: {state['attributes']}")
@@ -23,3 +32,5 @@ def print_iteration_summary(all_results):
                 print(f"      Final Scores: {score_str}")
 
     print("\n==========================================================")
+    print(f"🏆 Best Performing Iteration: '{best_iteration}' with a Meta Score of {best_score:.4f}")
+    print("==========================================================")
