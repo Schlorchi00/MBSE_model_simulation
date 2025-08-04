@@ -15,10 +15,10 @@ def material_assessment(node):
     recyclability = node.attributes.get('recyclability_score', 0)
     node.value_scores['sustainability'] = ((max(0, 1 - (core_density / 0.1))) + recyclability) / 2
     
-    # Functionality
+    # --- FIX: Changed score name for consistency ---
     face_modulus = node.attributes.get('face_sheet_modulus', 0)
-    stiffness_to_weight = face_modulus / (core_density * 1000)
-    node.functionality_scores['stiffness_to_weight'] = min(1.0, stiffness_to_weight / 2.0)
+    node.functionality_scores['structural_rigidity'] = min(1.0, face_modulus / 180.0) # Normalize against a high modulus value
+    
     conductivity = node.attributes.get('thermal_conductivity', 1)
     node.functionality_scores['thermal_resistance'] = max(0, 1 - (conductivity / 0.2))
     print(f"  - Executed material_assessment for '{node.id}'")
@@ -30,7 +30,7 @@ def material_prediction(node):
     node.value_scores['sustainability'] = 1.0
     print(f"  - Executed material_prediction for '{node.id}'")
 
-# --- Design Domain Functions ---
+# ... (rest of the functions are the same)
 def design_creation(node):
     thickness = node.attributes.get('panel_thickness', 0)
     node.functionality_scores['performance'] = min(1, thickness / 25.0)
@@ -39,7 +39,6 @@ def design_creation(node):
     print(f"  - Executed design_creation for '{node.id}'")
 
 def design_assembly(node):
-    # Sustainability now includes disassembly ease
     ease = node.attributes.get('disassembly_ease', 0)
     node.value_scores['sustainability'] = ease
     node.functionality_scores['performance'] = 0.9
@@ -53,7 +52,6 @@ def design_prediction(node):
     node.value_scores['sustainability'] = 1.0
     print(f"  - Executed design_prediction for '{node.id}'")
 
-# --- Manufacturing Domain Functions ---
 def technology_selection(node):
     process = node.attributes.get('process', 'hand_layup')
     node.functionality_scores['performance'] = 0.9 if process == 'autoclave_curing' else 0.6
