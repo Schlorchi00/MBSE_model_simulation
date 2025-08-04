@@ -4,6 +4,7 @@ from src.models.function_registry import MODEL_FUNCTIONS
 from src.config.config import SCENARIOS
 from src.reporting.summary import print_iteration_summary
 from src.visualization.visualize_graph import visualize_network_graph, plot_domain_scores, plot_summary_graph
+from src.reporting.pdf_report import generate_pdf_report
 
 def run_scenario(config, model_functions):
     """Helper function to set up and run a single simulation scenario."""
@@ -20,8 +21,14 @@ def run_scenario(config, model_functions):
 
     print(f"\nFINAL META-SCORE: {results['meta_score']:.4f}")
     
-    visualize_network_graph(results['final_network'], scenario_name)
-    plot_domain_scores(results, scenario_name)
+    # Sanitize scenario name for filenames
+    safe_name = scenario_name.replace(' ', '_').replace('/', '_')
+    visualize_network_graph(results['final_network'], safe_name)
+    plot_domain_scores(results, safe_name)
+    
+    # --- FIX: Add the original config to the results package ---
+    # This makes the image_path available to the PDF report generator.
+    results['config'] = config
     
     return results
 
@@ -33,4 +40,8 @@ if __name__ == "__main__":
     
     # Print the text summary and generate the final summary plot
     print_iteration_summary(all_results)
-    plot_summary_graph(all_results)
+    summary_chart_path = "final_summary_chart.png"
+    plot_summary_graph(all_results, summary_chart_path)
+    
+    # Generate the final PDF report
+    generate_pdf_report(all_results, summary_chart_path)
